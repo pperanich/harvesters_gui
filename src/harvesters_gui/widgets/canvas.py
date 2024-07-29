@@ -1,27 +1,3 @@
-#!/usr/bin/env python3
-# ----------------------------------------------------------------------------
-#
-# Copyright 2018 EMVA
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# ----------------------------------------------------------------------------
-
-
-# Standard library imports
-
-# Related third party imports
-
 import numpy as np
 
 from vispy import gloo
@@ -32,24 +8,28 @@ from vispy.util.transforms import ortho
 from genicam.gentl import PAYLOADTYPE_INFO_IDS
 from genicam.gentl import TimeoutException
 
-# Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.util.pfnc import is_custom, get_bits_per_pixel, \
-    bgr_formats
-from harvesters.util.pfnc import mono_location_formats, \
-    rgb_formats, bgr_formats, \
-    rgba_formats, bgra_formats, \
-    bayer_location_formats
+from harvesters.util.pfnc import is_custom, get_bits_per_pixel, bgr_formats
+from harvesters.util.pfnc import (
+    mono_location_formats,
+    rgb_formats,
+    bgr_formats,
+    rgba_formats,
+    bgra_formats,
+    bayer_location_formats,
+)
 
 
 class CanvasBase(app.Canvas):
     def __init__(
-            self, *,
-            image_acquirer=None,
-            width=640, height=480,
-            display_rate=30.,
-            background_color='gray',
-            vsync=True
+        self,
+        *,
+        image_acquirer=None,
+        width=640,
+        height=480,
+        display_rate=30.0,
+        background_color="gray",
+        vsync=True,
     ):
         """
         As far as we know, Vispy refreshes the canvas every 1/30 sec at the
@@ -57,37 +37,29 @@ class CanvasBase(app.Canvas):
         value which is greater than 30, then Vispy's callback is randomly
         called.
         """
+        app.Canvas.__init__(self, size=(width, height), vsync=vsync, autoswap=True)
 
-        #
-        app.Canvas.__init__(
-            self, size=(width, height), vsync=vsync, autoswap=True
-        )
-
-        #
         self._ia = image_acquirer
 
-        #
         self._background_color = background_color
         self._has_filled_texture = False
         self._width, self._height = width, height
 
-        #
         self._is_dragging = False
 
         # If it's True, the canvas keeps image acquisition but do not
         # draw images on the canvas:
         self._pause_drawing = False
 
-        #
         self._origin = [0, 0]
 
-        #
         self._display_rate = display_rate
         self._timer = app.Timer(
-            1. / self._display_rate, connect=self.update, start=True
+            1.0 / self._display_rate,  # type: ignore
+            connect=self.update,
+            start=True,
         )
 
-        #
         self._buffers = []
 
     @property
@@ -98,34 +70,22 @@ class CanvasBase(app.Canvas):
     def display_rate(self, value):
         self._display_rate = value
         self._timer.stop()
-        self._timer.start(interval=1./self._display_rate)
+        self._timer.start(interval=1.0 / self._display_rate)
 
     def set_canvas_size(self, width, height):
-        #
         self._has_filled_texture = False
 
-        #
         updated = False
 
-        #
         if self._width != width or self._height != height:
             self._width = width
             self._height = height
             updated = True
 
-        #
         if updated:
             self.apply_magnification()
 
     def on_draw(self, event):
-        # Update on June 15th, 2018:
-        # According to a VisPy developer, they have not finished
-        # porting VisPy to PyQt5. Once they finished the development
-        # we should try it out if it gives us the maximum refresh rate.
-        # See the following URL to check the latest information:
-        #
-        #     https://github.com/vispy/vispy/issues/1394
-
         # Clear the canvas in gray.
         gloo.clear(color=self._background_color)
 
@@ -237,22 +197,24 @@ class Canvas2D(CanvasBase):
     ]
 
     def __init__(
-            self, *,
-            image_acquirer=None,
-            width=640, height=480,
-            background_color='gray',
-            vsync=True, display_rate=30.
+        self,
+        *,
+        image_acquirer=None,
+        width=640,
+        height=480,
+        background_color="gray",
+        vsync=True,
+        display_rate=30.0,
     ):
-        #
         super().__init__(
             image_acquirer=image_acquirer,
-            width=width, height=height,
+            width=width,
+            height=height,
             display_rate=display_rate,
             background_color=background_color,
-            vsync=vsync
+            vsync=vsync,
         )
 
-        #
         self._vertex_shader = """
             // Uniforms
             uniform mat4 u_model;
@@ -283,46 +245,31 @@ class Canvas2D(CanvasBase):
             }
         """
 
-        #
         self._program = None
         self._data = None
         self._coordinate = None
-        self._translate = 0.
+        self._translate = 0.0
         self._latest_translate = self._translate
-        self._magnification = 1.
+        self._magnification = 1.0
 
         # Apply shaders.
-        self._program = Program(
-            self._vertex_shader, self._fragment_shader, count=4
-        )
+        self._program = Program(self._vertex_shader, self._fragment_shader, count=4)
 
-        #
         self._data = np.zeros(
-            4, dtype=[
-                ('a_position', np.float32, 2),
-                ('a_texcoord', np.float32, 2)
-            ]
+            4, dtype=[("a_position", np.float32, 2), ("a_texcoord", np.float32, 2)]
         )
 
-        #
-        self._data['a_texcoord'] = np.array(
-            [[0., 1.], [1., 1.], [0., 0.], [1., 0.]]
+        self._data["a_texcoord"] = np.array(
+            [[0.0, 1.0], [1.0, 1.0], [0.0, 0.0], [1.0, 0.0]]
         )
 
-        #
-        self._program['u_model'] = np.eye(4, dtype=np.float32)
-        self._program['u_view'] = np.eye(4, dtype=np.float32)
+        self._program["u_model"] = np.eye(4, dtype=np.float32)
+        self._program["u_view"] = np.eye(4, dtype=np.float32)
 
-        #
         self._coordinate = [0, 0]
 
+        self._program["texture"] = np.zeros((self._height, self._width), dtype="uint8")
 
-        #
-        self._program['texture'] = np.zeros(
-            (self._height, self._width), dtype='uint8'
-        )
-
-        #
         self.apply_magnification()
 
     def _prepare_texture(self, buffer):
@@ -332,7 +279,6 @@ class Canvas2D(CanvasBase):
 
         # Set the image as the texture of our canvas.
         if buffer:
-            #
             payload = buffer.payload
             component = payload.components[0]
             width = component.width
@@ -341,11 +287,9 @@ class Canvas2D(CanvasBase):
             # Update the canvas size if needed.
             self.set_canvas_size(width, height)
 
-            #
             exponent = 0
             data_format = None
 
-            #
             data_format_value = component.data_format_value
             if is_custom(data_format_value):
                 update = False
@@ -360,25 +304,27 @@ class Canvas2D(CanvasBase):
             if update:
                 # Reshape the image so that it can be drawn on the
                 # VisPy canvas:
-                if data_format in mono_location_formats or \
-                        data_format in bayer_location_formats:
+                if (
+                    data_format in mono_location_formats
+                    or data_format in bayer_location_formats
+                ):
                     # Reshape the 1D NumPy array into a 2D so that VisPy
                     # can display it as a mono image:
                     content = component.data.reshape(height, width)
                 else:
                     # The image requires you to reshape it to draw it on the
                     # canvas:
-                    if data_format in rgb_formats or \
-                            data_format in rgba_formats or \
-                            data_format in bgr_formats or \
-                            data_format in bgra_formats:
+                    if (
+                        data_format in rgb_formats
+                        or data_format in rgba_formats
+                        or data_format in bgr_formats
+                        or data_format in bgra_formats
+                    ):
                         # Reshape the 1D NumPy array into a 2D so that VisPy
                         # can display it as an RGB image:
                         content = component.data.reshape(
-                            height, width,
-                            int(component.num_components_per_pixel)
+                            height, width, int(component.num_components_per_pixel)
                         )
-                        #
                         if data_format in bgr_formats:
                             # Swap every R and B so that VisPy can display
                             # it as an RGB image:
@@ -390,47 +336,47 @@ class Canvas2D(CanvasBase):
                 if exponent > 0:
                     # The following code may affect to the rendering
                     # performance:
-                    content = (content / (2 ** exponent))
+                    content = content / (2**exponent)
 
                     # Then cast each array element to an uint8:
                     content = content.astype(np.uint8)
 
-                self._program['texture'] = content
+                self._program["texture"] = content
 
     def _draw(self):
-        self._program.draw('triangle_strip')
+        self._program.draw("triangle_strip")
 
     def apply_magnification(self):
-        #
         canvas_w, canvas_h = self.physical_size
         gloo.set_viewport(0, 0, canvas_w, canvas_h)
 
-        #
         ratio = self._magnification
         w, h = self._width, self._height
 
-        self._program['u_projection'] = ortho(
+        self._program["u_projection"] = ortho(
             self._coordinate[0],
             canvas_w * ratio + self._coordinate[0],
             self._coordinate[1],
             canvas_h * ratio + self._coordinate[1],
-            -1, 1
+            -1,
+            1,
         )
 
-        x, y = int((canvas_w * ratio - w) / 2), int((canvas_h * ratio - h) / 2)  # centering x & y
+        x, y = (
+            int((canvas_w * ratio - w) / 2),
+            int((canvas_h * ratio - h) / 2),
+        )  # centering x & y
 
-        #
-        self._data['a_position'] = np.array(
+        self._data["a_position"] = np.array(
             [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]
         )
 
-        #
         self._program.bind(gloo.VertexBuffer(self._data))
 
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
-        power = 7. if is_running_on_macos() else 5.  # 2 ** exponent
-        stride = 4. if is_running_on_macos() else 7.
+        power = 7.0 if is_running_on_macos() else 5.0  # 2 ** exponent
+        stride = 4.0 if is_running_on_macos() else 7.0
         translate = self._translate
         translate = min(power * stride, translate)
         translate = max(-power * stride, translate)
@@ -442,10 +388,10 @@ class Canvas2D(CanvasBase):
 
     def on_mouse_move(self, event):
         if self._is_dragging:
-            adjustment = 2. if is_running_on_macos() else 1.
+            adjustment = 2.0 if is_running_on_macos() else 1.0
             ratio = self._magnification * adjustment
             delta = event.pos - self._origin
             self._origin = event.pos
-            self._coordinate[0] -= (delta[0] * ratio)
-            self._coordinate[1] += (delta[1] * ratio)
+            self._coordinate[0] -= delta[0] * ratio
+            self._coordinate[1] += delta[1] * ratio
             self.apply_magnification()

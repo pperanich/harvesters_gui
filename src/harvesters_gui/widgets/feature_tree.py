@@ -1,40 +1,22 @@
-#!/usr/bin/env python3
-# ----------------------------------------------------------------------------
-#
-# Copyright 2018 EMVA
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# ----------------------------------------------------------------------------
-
-
-# Standard library imports
 import re
 import sys
-
-# Related third party imports
-from PyQt5.Qt import Qt, QStyledItemDelegate, QColor
-from PyQt5.QtCore import QAbstractItemModel, QModelIndex, \
-    QSortFilterProxyModel
-from PyQt5.QtWidgets import QApplication, QTreeView, \
-    QSpinBox, QPushButton, QComboBox, QWidget, \
-    QLineEdit
-
+from typing import Optional
+from qtpy.QtCore import QAbstractItemModel, QModelIndex, QSortFilterProxyModel, Qt
+from qtpy.QtWidgets import (
+    QApplication,
+    QTreeView,
+    QSpinBox,
+    QPushButton,
+    QComboBox,
+    QWidget,
+    QLineEdit,
+    QStyledItemDelegate,
+)
+from qtpy.QtGui import QColor
 from genicam.genapi import NodeMap
 from genicam.genapi import EInterfaceType, EAccessMode, EVisibility
 
-# Local application/library specific imports
-from harvesters_gui._private.frontend.pyqt5.helper import get_system_font
+from harvesters_gui.utils import get_system_font
 
 
 class TreeItem(object):
@@ -50,10 +32,8 @@ class TreeItem(object):
     _readable_access_modes = [EAccessMode.RW, EAccessMode.RO]
 
     def __init__(self, data=None, parent_item=None):
-        #
         super().__init__()
 
-        #
         self._parent_item = parent_item
         self._own_data = data
         self._child_items = []
@@ -93,7 +73,7 @@ class TreeItem(object):
             except IndexError:
                 return None
         else:
-            value = ''
+            value = ""
             feature = self.own_data[column]
             if column == 0:
                 value = feature.node.display_name
@@ -102,13 +82,15 @@ class TreeItem(object):
 
                 if interface_type != EInterfaceType.intfICategory:
                     if interface_type == EInterfaceType.intfICommand:
-                        value = '[Click here]'
+                        value = "[Click here]"
                     else:
-                        if feature.node.get_access_mode() not in \
-                                self._readable_access_modes:
-                            value = '[Not accessible]'
+                        if (
+                            feature.node.get_access_mode()
+                            not in self._readable_access_modes
+                        ):
+                            value = "[Not accessible]"
                         elif interface_type not in self._readable_nodes:
-                            value = '[Not readable]'
+                            value = "[Not readable]"
                         else:
                             try:
                                 value = str(feature.value)
@@ -134,7 +116,7 @@ class TreeItem(object):
             feature = self.own_data[column]
             interface_type = feature.node.principal_interface_type
             if interface_type == EInterfaceType.intfICategory:
-                return QColor(56, 147, 189)
+                return QColor(56, 147, 189, 1)
             else:
                 return None
 
@@ -145,7 +127,7 @@ class TreeItem(object):
             feature = self.own_data[column]
             interface_type = feature.node.principal_interface_type
             if interface_type == EInterfaceType.intfICategory:
-                return QColor('white')
+                return QColor("white")
             else:
                 return None
 
@@ -162,14 +144,16 @@ class TreeItem(object):
 class FeatureTreeModel(QAbstractItemModel):
     #
     _capable_roles = [
-        Qt.DisplayRole, Qt.ToolTipRole, Qt.BackgroundColorRole,
-        Qt.ForegroundRole
+        Qt.ItemDataRole.DisplayRole,
+        Qt.ItemDataRole.ToolTipRole,
+        Qt.ItemDataRole.BackgroundRole,
+        Qt.ItemDataRole.ForegroundRole,
     ]
 
     #
     _editables = [EAccessMode.RW, EAccessMode.WO]
 
-    def __init__(self, parent=None, node_map: NodeMap=None):
+    def __init__(self, parent=None, node_map: Optional[NodeMap] = None):
         """
         REMARKS: QAbstractItemModel might impact the performance and could
         slow Harvester. As far as we've confirmed, QAbstractItemModel calls
@@ -183,7 +167,7 @@ class FeatureTreeModel(QAbstractItemModel):
         super().__init__()
 
         #
-        self._root_item = TreeItem(('Feature Name', 'Value'))
+        self._root_item = TreeItem(("Feature Name", "Value"))
         self._node_map = node_map
         if node_map:
             self.populateTreeItems(node_map.Root.features, self._root_item)
@@ -206,11 +190,11 @@ class FeatureTreeModel(QAbstractItemModel):
             return None
 
         item = index.internalPointer()
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             value = item.data(index.column())
-        elif role == Qt.ToolTipRole:
+        elif role == Qt.ItemDataRole.ToolTipRole:
             value = item.tooltip(index.column())
-        elif role == Qt.BackgroundColorRole:
+        elif role == Qt.ItemDataRole.BackgroundRole:
             value = item.background(index.column())
         else:
             value = item.foreground(index.column())
@@ -219,24 +203,27 @@ class FeatureTreeModel(QAbstractItemModel):
 
     def flags(self, index):
         if not index.isValid():
-            return Qt.NoItemFlags
+            return Qt.ItemFlag.NoItemFlags
 
         tree_item = index.internalPointer()
         feature = tree_item.own_data[0]
         access_mode = feature.node.get_access_mode()
 
         if access_mode in self._editables:
-            ret = Qt.ItemIsEnabled | Qt.ItemIsEditable
+            ret = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
         else:
             if index.column() == 1:
-                ret = Qt.NoItemFlags
+                ret = Qt.ItemFlag.NoItemFlags
             else:
-                ret = Qt.ItemIsEnabled
+                ret = Qt.ItemFlag.ItemIsEnabled
         return ret
 
     def headerData(self, p_int, Qt_Orientation, role=None):
         # p_int: section
-        if Qt_Orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if (
+            Qt_Orientation == Qt.Orientation.Horizontal
+            and role == Qt.ItemDataRole.DisplayRole
+        ):
             return self.root_item.data(p_int)
         return None
 
@@ -288,8 +275,8 @@ class FeatureTreeModel(QAbstractItemModel):
             if interface_type == EInterfaceType.intfICategory:
                 self.populateTreeItems(feature.features, item)
 
-    def setData(self, index: QModelIndex, value, role=Qt.EditRole):
-        if role == Qt.EditRole:
+    def setData(self, index: QModelIndex, value, role=Qt.ItemDataRole.EditRole):
+        if role == Qt.ItemDataRole.EditRole:
             # TODO: Check the type of the target and convert the given value.
             self.dataChanged.emit(index, index)
 
@@ -302,7 +289,7 @@ class FeatureTreeModel(QAbstractItemModel):
                     if value:
                         feature.execute()
                 elif interface_type == EInterfaceType.intfIBoolean:
-                    feature.value = True if value.lower() == 'true' else False
+                    feature.value = True if value.lower() == "true" else False
                 elif interface_type == EInterfaceType.intfIFloat:
                     feature.value = float(value)
                 else:
@@ -321,8 +308,9 @@ class FeatureEditDelegate(QStyledItemDelegate):
         #
         self._proxy = proxy
 
-    def createEditor(self, parent: QWidget, QStyleOptionViewItem, proxy_index: QModelIndex):
-
+    def createEditor(
+        self, parent: QWidget, QStyleOptionViewItem, proxy_index: QModelIndex
+    ):
         # Get the actual source.
         src_index = self._proxy.mapToSource(proxy_index)
 
@@ -341,14 +329,16 @@ class FeatureEditDelegate(QStyledItemDelegate):
             w.setValue(feature.value)
         elif interface_type == EInterfaceType.intfICommand:
             w = QPushButton(parent)
-            w.setText('Execute')
+            w.setText("Execute")
             w.clicked.connect(lambda: self.on_button_clicked(proxy_index))
         elif interface_type == EInterfaceType.intfIBoolean:
             w = QComboBox(parent)
-            boolean_ints = {'False': 0, 'True': 1}
-            w.addItem('False')
-            w.addItem('True')
-            proxy_index = boolean_ints['True'] if feature.value else boolean_ints['False']
+            boolean_ints = {"False": 0, "True": 1}
+            w.addItem("False")
+            w.addItem("True")
+            proxy_index = (
+                boolean_ints["True"] if feature.value else boolean_ints["False"]
+            )
             w.setCurrentIndex(proxy_index)
         elif interface_type == EInterfaceType.intfIEnumeration:
             w = QComboBox(parent)
@@ -370,9 +360,8 @@ class FeatureEditDelegate(QStyledItemDelegate):
         return w
 
     def setEditorData(self, editor: QWidget, proxy_index: QModelIndex):
-
         src_index = self._proxy.mapToSource(proxy_index)
-        value = src_index.data(Qt.DisplayRole)
+        value = src_index.data(Qt.ItemDataRole.DisplayRole)
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
         interface_type = feature.node.principal_interface_type
@@ -380,7 +369,7 @@ class FeatureEditDelegate(QStyledItemDelegate):
         if interface_type == EInterfaceType.intfIInteger:
             editor.setValue(int(value))
         elif interface_type == EInterfaceType.intfIBoolean:
-            i = editor.findText(value, Qt.MatchFixedString)
+            i = editor.findText(value, Qt.MatchFlag.MatchFixedString)
             editor.setCurrentIndex(i)
         elif interface_type == EInterfaceType.intfIEnumeration:
             editor.setEditText(value)
@@ -389,8 +378,9 @@ class FeatureEditDelegate(QStyledItemDelegate):
         elif interface_type == EInterfaceType.intfIFloat:
             editor.setText(value)
 
-    def setModelData(self, editor: QWidget, model: QAbstractItemModel, proxy_index: QModelIndex):
-
+    def setModelData(
+        self, editor: QWidget, model: QAbstractItemModel, proxy_index: QModelIndex
+    ):
         src_index = self._proxy.mapToSource(proxy_index)
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
@@ -413,7 +403,6 @@ class FeatureEditDelegate(QStyledItemDelegate):
             model.setData(proxy_index, data)
 
     def on_button_clicked(self, proxy_index: QModelIndex):
-
         src_index = self._proxy.mapToSource(proxy_index)
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
@@ -430,7 +419,7 @@ class FilterProxyModel(QSortFilterProxyModel):
 
         #
         self._visibility = visibility
-        self._keyword = ''
+        self._keyword = ""
 
     def filterVisibility(self, visibility):
         beginner_items = {EVisibility.Beginner}
@@ -442,7 +431,7 @@ class FilterProxyModel(QSortFilterProxyModel):
             EVisibility.Beginner: beginner_items,
             EVisibility.Expert: expert_items,
             EVisibility.Guru: guru_items,
-            EVisibility.Invisible: all_items
+            EVisibility.Invisible: all_items,
         }
 
         if visibility not in items_dict[self._visibility]:
@@ -452,10 +441,10 @@ class FilterProxyModel(QSortFilterProxyModel):
 
     def filterPattern(self, name):
         if not re.search(self._keyword, name, re.IGNORECASE):
-            print(name + ': refused')
+            print(name + ": refused")
             return False
         else:
-            print(name + ': accepted')
+            print(name + ": accepted")
             return True
 
     def setVisibility(self, visibility: EVisibility):
@@ -490,7 +479,7 @@ class FilterProxyModel(QSortFilterProxyModel):
         return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     model = FeatureTreeModel()
     view = QTreeView(model)

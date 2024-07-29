@@ -1,41 +1,13 @@
-#!/usr/bin/env python3
-# ----------------------------------------------------------------------------
-#
-# Copyright 2018 EMVA
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# ----------------------------------------------------------------------------
-
-
-# Standard library imports
-
-# Related third party imports
-from PyQt5.QtCore import QMutexLocker, QThread
-
-# Local application/library specific imports
+from qtpy.QtCore import QMutexLocker, QThread
 from harvesters.core import ThreadBase
 
 
 class _PyQtThread(ThreadBase):
     def __init__(self, parent=None, mutex=None, worker=None, update_cycle_us=1):
-        #
         super().__init__(mutex=mutex)
 
-        #
         self._thread = _ThreadImpl(
-            parent=parent, base=self, worker=worker,
-            update_cycle_us=update_cycle_us
+            parent=parent, base=self, worker=worker, update_cycle_us=update_cycle_us
         )
 
     def acquire(self):
@@ -77,8 +49,7 @@ class _PyQtThread(ThreadBase):
 
 
 class _ThreadImpl(QThread):
-    def __init__(self, parent=None, base=None, worker=None,
-                 update_cycle_us=1):
+    def __init__(self, parent=None, base=None, worker=None, update_cycle_us=1):
         #
         super().__init__(parent)
 
@@ -115,4 +86,3 @@ class _ThreadImpl(QThread):
     @property
     def id_(self):
         return int(self.currentThreadId())
-
