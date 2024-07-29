@@ -1,5 +1,6 @@
 from qtpy.QtWidgets import QComboBox
 from harvesters_gui.utils import get_system_font
+from harvesters_gui.widgets.canvas import Canvas2D
 
 
 class ComboBoxDisplayRateList(QComboBox):
@@ -18,4 +19,6 @@ class ComboBoxDisplayRateList(QComboBox):
             display_rate = 30.0
         else:
             display_rate = 60.0
-        self.parent().parent().canvas.display_rate = display_rate
+
+        canvas: Canvas2D = self.parent().parent().canvas  # type: ignore
+        canvas.display_rate = display_rate

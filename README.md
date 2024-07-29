@@ -11,7 +11,7 @@ Metropolitan Museum of Art</figcaption>
 
 ![image](https://img.shields.io/pypi/pyversions/harvesters_gui.svg)
 
-------------------------------------------------------------------------
+---
 
 # What Is Harvester GUI?
 
@@ -26,7 +26,7 @@ License-2.0](https://www.apache.org/licenses/LICENSE-2.0) without
 worrying about the use of your software: personal, internal or
 commercial.
 
-------------------------------------------------------------------------
+---
 
 ::: {.contents depth="1"}
 Table of Contents
@@ -37,42 +37,42 @@ there are missing credits, please tell us, we will correct it.
 Similarly, all excerpts should be sourced. If not, this is an error and
 we will correct it as soon as you tell us.
 
-------------------------------------------------------------------------
+---
 
 # Announcements
 
--   **Version 1.0.2**: Resolves issue
-    [#22](https://github.com/genicam/harvesters_gui/issues/22).
--   **Version 1.0.1**: Resolves issue
-    [#17](https://github.com/genicam/harvesters_gui/issues/17).
--   **Version 1.0.0**: Resolves issue
-    [#16](https://github.com/genicam/harvesters_gui/issues/16).
--   **Version 0.4.0**: Resolves issue
-    [#15](https://github.com/genicam/harvesters_gui/issues/15).
--   **Version 0.3.0**: Resolves issues
-    [#11](https://github.com/genicam/harvesters_gui/issues/11) and
-    [#14](https://github.com/genicam/harvesters_gui/issues/14).
--   **Version 0.2.6**: Resolves issue
-    [#13](https://github.com/genicam/harvesters_gui/issues/13).
--   **Version 0.2.5**: Use Harvester version `0.2.4`.
--   **Version 0.2.4**: Use Harvester version `0.2.3`.
--   **Version 0.2.3**: Use Harvester version `0.2.2`.
--   **Version 0.2.2**: Resolves issue
-    [#5](https://github.com/genicam/harvesters_gui/issues/7).
--   **Version 0.2.1**: Works with Harvester versions \>= `0.2.1`.
--   **Version 0.2.0**: Works with Harvester versions \>= `0.2.0`.
--   **Version 0.1.0**: Note that this version will be deprecated and the
-    following versions will be incompatible with any of `0.1.n`
-    versions.
+- **Version 1.0.2**: Resolves issue
+  [#22](https://github.com/genicam/harvesters_gui/issues/22).
+- **Version 1.0.1**: Resolves issue
+  [#17](https://github.com/genicam/harvesters_gui/issues/17).
+- **Version 1.0.0**: Resolves issue
+  [#16](https://github.com/genicam/harvesters_gui/issues/16).
+- **Version 0.4.0**: Resolves issue
+  [#15](https://github.com/genicam/harvesters_gui/issues/15).
+- **Version 0.3.0**: Resolves issues
+  [#11](https://github.com/genicam/harvesters_gui/issues/11) and
+  [#14](https://github.com/genicam/harvesters_gui/issues/14).
+- **Version 0.2.6**: Resolves issue
+  [#13](https://github.com/genicam/harvesters_gui/issues/13).
+- **Version 0.2.5**: Use Harvester version `0.2.4`.
+- **Version 0.2.4**: Use Harvester version `0.2.3`.
+- **Version 0.2.3**: Use Harvester version `0.2.2`.
+- **Version 0.2.2**: Resolves issue
+  [#5](https://github.com/genicam/harvesters_gui/issues/7).
+- **Version 0.2.1**: Works with Harvester versions \>= `0.2.1`.
+- **Version 0.2.0**: Works with Harvester versions \>= `0.2.0`.
+- **Version 0.1.0**: Note that this version will be deprecated and the
+  following versions will be incompatible with any of `0.1.n`
+  versions.
 
 ## External links
 
--   [Harvester](https://github.com/genicam/harvesters): Image
-    acquisition front-end library
--   [PyPI](https://pypi.org/project/harvesters/): This is the package
-    distribution page of Harvester which is located in PyPI
--   [Read the Docs](https://harvesters.readthedocs.io/en/latest/): You
-    can find the API reference of Harvester and Harvester GUI
+- [Harvester](https://github.com/genicam/harvesters): Image
+  acquisition front-end library
+- [PyPI](https://pypi.org/project/harvesters/): This is the package
+  distribution page of Harvester which is located in PyPI
+- [Read the Docs](https://harvesters.readthedocs.io/en/latest/): You
+  can find the API reference of Harvester and Harvester GUI
 
 # Installation
 
@@ -83,20 +83,20 @@ Harvester work.
 
 The following software modules are required to get Harvester working:
 
--   Python\>=3.5,\<3.9
+- Python\>=3.5,\<3.9
 
 In addition, you will need the following items to let Harvester make
 something meaningful:
 
--   GenTL Producers
--   GenICam compliant machine vision cameras
+- GenTL Producers
+- GenICam compliant machine vision cameras
 
 ## Installing Harvester GUI
 
 If you want to use Harvester GUI, then please invoke the following
 command:
 
-``` shell
+```shell
 $ pip install harvesters_gui
 ```
 
@@ -109,7 +109,7 @@ are more or less open and free.
 To launch Harvester GUI, let\'s create a Python script file, naming
 `harvester.py`, that contains the following code:
 
-``` python
+```python
 import sys
 from PyQt5.QtWidgets import QApplication
 from harvesters_gui.frontend.pyqt5 import Harvester
@@ -118,12 +118,12 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     h = Harvester()
     h.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 ```
 
 Then launch `harvester.py`:
 
-``` shell
+```shell
 $ python path/to/harvester.py
 ```
 
@@ -137,11 +137,11 @@ for controlling OpenGL functionality and PyQt for providing GUI.
 
 The main features of Harvester GUI are listed as follows:
 
--   Image data visualization of the acquired images
--   Image magnification using a mouse wheel or a trackpad
--   Image dragging using a mouse or a trackpad
--   An arbitrary selection of image displaying point in the data path
-    (Not implemented yet)
+- Image data visualization of the acquired images
+- Image magnification using a mouse wheel or a trackpad
+- Image dragging using a mouse or a trackpad
+- An arbitrary selection of image displaying point in the data path
+  (Not implemented yet)
 
 Unlike Harvester, Harvester GUI limits the number of GenTL Producers to
 load just one. This is just a limitation to not make the GUI
@@ -309,25 +309,27 @@ feature node tree. The shortcut key is `Ctrl+v`
 
 GenICam defines the following visibility levels:
 
--   **Beginner**: Features that should be visible for all users via the
-    GUI and API.
--   **Expert**: Features that require a more in-depth knowledge of the
-    camera functionality.
--   **Guru**: Advanced features that might bring the cameras into a
-    state where it will not work properly anymore if it is set
-    incorrectly for the cameras current mode of operation.
--   **Invisible**: Features that should be kept hidden for the GUI users
-    but still be available via the API.
+- **Beginner**: Features that should be visible for all users via the
+  GUI and API.
+- **Expert**: Features that require a more in-depth knowledge of the
+  camera functionality.
+- **Guru**: Advanced features that might bring the cameras into a
+  state where it will not work properly anymore if it is set
+  incorrectly for the cameras current mode of operation.
+- **Invisible**: Features that should be kept hidden for the GUI users
+  but still be available via the API.
 
 The following table shows each item in the combo box and the visibility
 status of each visibility level:
 
-  Combo box item   Beginner   Expert      Guru        Invisible
-  ---------------- ---------- ----------- ----------- -----------
-  Beginner         Visible    Invisible   Invisible   Invisible
-  Expert           Visible    Visible     Invisible   Invisible
-  Guru             Visible    Visible     Visible     Invisible
-  All              Visible    Visible     Visible     Visible
+Combo box item Beginner Expert Guru Invisible
+
+---
+
+Beginner Visible Invisible Invisible Invisible
+Expert Visible Visible Invisible Invisible
+Guru Visible Visible Visible Invisible
+All Visible Visible Visible Visible
 
 #### Filtering GenICam feature nodes by regular expression
 
@@ -354,27 +356,27 @@ is `Ctrl+c`.
 
 Harvester GUI uses the following open source libraries/resources:
 
--   VisPy
+- VisPy
 
-    | License: [BSD
-      3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-    | Copyright (c) 2013-2018 VisPy developers
+  | License: [BSD
+  3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+  | Copyright (c) 2013-2018 VisPy developers
 
-    | <http://vispy.org>
-    | <https://github.com/vispy/vispy>
+  | <http://vispy.org>
+  | <https://github.com/vispy/vispy>
 
--   PyQt5
+- PyQt5
 
-    | License: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
-    | Copyright (c) 2018 Riverbank Computing Limited
+  | License: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+  | Copyright (c) 2018 Riverbank Computing Limited
 
-    | <https://www.riverbankcomputing.com>
-    | <https://pypi.org/project/PyQt5/>
+  | <https://www.riverbankcomputing.com>
+  | <https://pypi.org/project/PyQt5/>
 
--   Icons8
+- Icons8
 
-    | License: [Creative Commons Attribution-NoDerivs 3.0
-      Unported](https://creativecommons.org/licenses/by-nd/3.0/)
-    | Copyright (c) Icons8 LLC
+  | License: [Creative Commons Attribution-NoDerivs 3.0
+  Unported](https://creativecommons.org/licenses/by-nd/3.0/)
+  | Copyright (c) Icons8 LLC
 
-    | <https://icons8.com>
+  | <https://icons8.com>

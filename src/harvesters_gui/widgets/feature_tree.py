@@ -359,48 +359,75 @@ class FeatureEditDelegate(QStyledItemDelegate):
 
         return w
 
-    def setEditorData(self, editor: QWidget, proxy_index: QModelIndex):
-        src_index = self._proxy.mapToSource(proxy_index)
+    def setEditorData(self, editor: Optional[QWidget], index: QModelIndex):
+        src_index = self._proxy.mapToSource(index)
         value = src_index.data(Qt.ItemDataRole.DisplayRole)
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
         interface_type = feature.node.principal_interface_type
 
-        if interface_type == EInterfaceType.intfIInteger:
+        if editor is None:
+            raise ValueError("Editor must not be None!")
+
+        if interface_type == EInterfaceType.intfIInteger and isinstance(
+            editor, QSpinBox
+        ):
             editor.setValue(int(value))
-        elif interface_type == EInterfaceType.intfIBoolean:
+        elif interface_type == EInterfaceType.intfIBoolean and isinstance(
+            editor, QComboBox
+        ):
             i = editor.findText(value, Qt.MatchFlag.MatchFixedString)
             editor.setCurrentIndex(i)
-        elif interface_type == EInterfaceType.intfIEnumeration:
+        elif interface_type == EInterfaceType.intfIEnumeration and isinstance(
+            editor, QComboBox
+        ):
             editor.setEditText(value)
-        elif interface_type == EInterfaceType.intfIString:
+        elif interface_type == EInterfaceType.intfIString and isinstance(
+            editor, QLineEdit
+        ):
             editor.setText(value)
-        elif interface_type == EInterfaceType.intfIFloat:
+        elif interface_type == EInterfaceType.intfIFloat and isinstance(
+            editor, QLineEdit
+        ):
             editor.setText(value)
 
     def setModelData(
-        self, editor: QWidget, model: QAbstractItemModel, proxy_index: QModelIndex
+        self,
+        editor: Optional[QWidget],
+        model: Optional[QAbstractItemModel],
+        index: QModelIndex,
     ):
-        src_index = self._proxy.mapToSource(proxy_index)
+        assert model is not None
+        src_index = self._proxy.mapToSource(index)
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
         interface_type = feature.node.principal_interface_type
 
-        if interface_type == EInterfaceType.intfIInteger:
+        if interface_type == EInterfaceType.intfIInteger and isinstance(
+            editor, QSpinBox
+        ):
             data = editor.value()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIBoolean:
+            model.setData(index, data)
+        elif interface_type == EInterfaceType.intfIBoolean and isinstance(
+            editor, QComboBox
+        ):
             data = editor.currentText()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIEnumeration:
+            model.setData(index, data)
+        elif interface_type == EInterfaceType.intfIEnumeration and isinstance(
+            editor, QComboBox
+        ):
             data = editor.currentText()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIString:
+            model.setData(index, data)
+        elif interface_type == EInterfaceType.intfIString and isinstance(
+            editor, QLineEdit
+        ):
             data = editor.text()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIFloat:
+            model.setData(index, data)
+        elif interface_type == EInterfaceType.intfIFloat and isinstance(
+            editor, QLineEdit
+        ):
             data = editor.text()
-            model.setData(proxy_index, data)
+            model.setData(index, data)
 
     def on_button_clicked(self, proxy_index: QModelIndex):
         src_index = self._proxy.mapToSource(proxy_index)
@@ -455,10 +482,10 @@ class FilterProxyModel(QSortFilterProxyModel):
         self._keyword = keyword
         self.invalidateFilter()
 
-    def filterAcceptsRow(self, src_row, src_parent: QModelIndex):
-        #
+    def filterAcceptsRow(self, source_row, source_parent: QModelIndex):
         src_model = self.sourceModel()
-        src_index = src_model.index(src_row, 0, parent=src_parent)
+        assert src_model is not None
+        src_index = src_model.index(source_row, 0, parent=source_parent)
 
         tree_item = src_index.internalPointer()
         feature = tree_item.own_data[0]
@@ -482,6 +509,6 @@ class FilterProxyModel(QSortFilterProxyModel):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     model = FeatureTreeModel()
-    view = QTreeView(model)
+    view = QTreeView(model)  # type: ignore
     view.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

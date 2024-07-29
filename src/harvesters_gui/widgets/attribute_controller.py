@@ -1,4 +1,5 @@
 import sys
+from harvesters.core import NodeMap
 from qtpy.QtCore import Slot
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (
@@ -79,7 +80,9 @@ class AttributeController(QMainWindow):
 
     def _setup_toolbars(self):
         group_filter = self.addToolBar("Node Visibility")
+        assert group_filter is not None
         group_manipulation = self.addToolBar("Node Tree Manipulation")
+        assert group_manipulation is not None
 
         label_visibility = QLabel()
         label_visibility.setText("Visibility")
@@ -97,10 +100,11 @@ class AttributeController(QMainWindow):
         shortcut_key = "Ctrl+v"
         shortcut = QShortcut(QKeySequence(shortcut_key), self)
 
-        def show_popup():
+        def show_popup_visibility():
+            assert self._combo_box_visibility is not None
             self._combo_box_visibility.showPopup()
 
-        shortcut.activated.connect(show_popup)
+        shortcut.activated.connect(show_popup_visibility)
 
         self._combo_box_visibility.setToolTip(
             compose_tooltip("Filter the nodes to show", shortcut_key)
@@ -162,6 +166,7 @@ class AttributeController(QMainWindow):
         self._combo_box_visibility.setCurrentIndex(self._visibility_dict["Expert"])
 
     def _invalidate_feature_tree_by_visibility(self):
+        assert self._combo_box_visibility is not None
         visibility = self._visibility_dict[self._combo_box_visibility.currentText()]
         self._proxy.setVisibility(visibility)
         self._view.expandAll()
@@ -194,6 +199,6 @@ class AttributeController(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    about = AttributeController()
+    about = AttributeController(NodeMap())
     about.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

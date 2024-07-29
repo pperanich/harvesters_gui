@@ -22,7 +22,7 @@ class DecoratedDialog(QDialog):
         super().__init__(parent)
         self._path_to_image = path_to_image
 
-    def paintEvent(self, event):
+    def paintEvent(self, a0):
         painter = QPainter(self)
         painter.drawPixmap(
             self.rect(),
@@ -91,12 +91,7 @@ class About(QDialog):
         self._acknowledgements.setModal(True)
 
     def _get_version_info(self):
-        parent = self.parent()
-
-        if not hasattr(parent, "version"):
-            raise ValueError("Parent is missing version attribute!")
-
-        return "Version " + parent.version
+        return "Version " + getattr(self.parent(), "version", "ERROR")
 
     def _handle_open_dialog(self):
         self._acknowledgements.show()
@@ -104,16 +99,12 @@ class About(QDialog):
 
 class Acknowledgements(QDialog):
     def __init__(self, parent=None):
-        #
         super().__init__(parent=parent)
 
-        #
         self.setWindowTitle("Acknowledgements")
 
-        #
         layout = QVBoxLayout(self)
 
-        #
         content = "Cover Drawing:\n"
         content += "\n"
         content += "Pieter Bruegel the Elder, The Harvesters\n"
@@ -151,4 +142,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     about = About()
     about.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

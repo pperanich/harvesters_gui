@@ -7,7 +7,7 @@ class _PyQtThread(ThreadBase):
         super().__init__(mutex=mutex)
 
         self._thread = _ThreadImpl(
-            parent=parent, base=self, worker=worker, update_cycle_us=update_cycle_us
+            base=self, parent=parent, worker=worker, update_cycle_us=update_cycle_us
         )
 
     def acquire(self):
@@ -49,17 +49,21 @@ class _PyQtThread(ThreadBase):
 
 
 class _ThreadImpl(QThread):
-    def __init__(self, parent=None, base=None, worker=None, update_cycle_us=1):
-        #
+    def __init__(
+        self,
+        base: ThreadBase,
+        parent=None,
+        worker=None,
+        update_cycle_us=1,
+    ):
         super().__init__(parent)
 
-        #
         self._worker = worker
         self._base = base
         self._update_cycle_us = update_cycle_us
 
     def stop(self):
-        with QMutexLocker(self._base.mutex):
+        with QMutexLocker(self._base._mutex):
             self._base._is_running = False
 
     def run(self):
@@ -70,7 +74,7 @@ class _ThreadImpl(QThread):
                 self.usleep(self._update_cycle_us)
 
     def acquire(self):
-        return QMutexLocker(self._base.mutex)
+        return QMutexLocker(self._base._mutex)
 
     def release(self):
         pass
@@ -85,4 +89,7 @@ class _ThreadImpl(QThread):
 
     @property
     def id_(self):
-        return int(self.currentThreadId())
+        thread_id = self.currentThreadId()
+        if thread_id is None:
+            thread_id = -1
+        return int(thread_id)

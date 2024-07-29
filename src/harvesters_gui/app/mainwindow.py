@@ -1,6 +1,8 @@
+import argparse
 import datetime
 import os
 import sys
+from importlib.metadata import version
 from qtpy.QtCore import QMutex, Signal
 from qtpy.QtGui import QKeySequence, QGuiApplication
 from qtpy.QtWidgets import (
@@ -45,7 +47,7 @@ class Harvester(QMainWindow):
     _signal_update_statistics = Signal(str)
     _signal_stop_image_acquisition = Signal()
 
-    def __init__(self, *, vsync=True, logger=None):
+    def __init__(self, *, vsync=True, logger=None, files: list[str] = []):
         self._logger = logger or get_logger(name="harvesters")
 
         super().__init__()
@@ -54,6 +56,8 @@ class Harvester(QMainWindow):
 
         profile = True if "HARVESTER_PROFILE" in os.environ else False
         self._harvester_core = HarvesterCore(profile=profile, logger=self._logger)
+        for file in files:
+            self._harvester_core.add_file(file)
         self._ia = None  # Image Acquirer
 
         self._widget_canvas = Canvas2D(vsync=vsync)
@@ -85,12 +89,15 @@ class Harvester(QMainWindow):
             o.update()
 
     def _stop_image_acquisition(self):
+        assert self.action_stop_image_acquisition is not None
         self.action_stop_image_acquisition.execute()
 
     def update_statistics(self, message):
-        self.statusBar().showMessage(message)
+        sb = self.statusBar()
+        if sb is not None:
+            sb.showMessage(message)
 
-    def closeEvent(self, QCloseEvent):
+    def closeEvent(self, a0):
         if self._widget_attribute_controller:
             self._widget_attribute_controller.close()
 
@@ -117,7 +124,7 @@ class Harvester(QMainWindow):
 
     @property
     def version(self):
-        return self.harvester_core.version
+        return self._harvester_core.version
 
     @property
     def device_list(self):
@@ -137,8 +144,10 @@ class Harvester(QMainWindow):
         self.setWindowTitle("GenICam.Harvester")
         self.setFont(get_system_font())
 
-        self.statusBar().showMessage("")
-        self.statusBar().setFont(get_system_font())
+        sb = self.statusBar()
+        if sb is not None:
+            sb.showMessage("")
+            sb.setFont(get_system_font())
 
         self._initialize_gui_toolbar(self._observer_widgets)
 
@@ -148,19 +157,25 @@ class Harvester(QMainWindow):
 
         # Place it in the center.
         rectangle = self.frameGeometry()
-        coordinate = QGuiApplication.primaryScreen().availableGeometry().center()
-        rectangle.moveCenter(coordinate)
+        screen = QGuiApplication.primaryScreen()
+        if screen is not None:
+            coordinate = screen.availableGeometry().center()
+            rectangle.moveCenter(coordinate)
         self.move(rectangle.topLeft())
 
     def _initialize_gui_toolbar(self, observers):
         group_gentl_info = self.addToolBar("GenTL Information")
+        assert group_gentl_info is not None
         group_connection = self.addToolBar("Connection")
+        assert group_connection is not None
         group_device = self.addToolBar("Image Acquisition")
+        assert group_device is not None
         group_display = self.addToolBar("Display")
+        assert group_display is not None
         group_help = self.addToolBar("Help")
+        assert group_help is not None
 
         # Create buttons:
-
         button_select_file = ActionSelectFile(
             icon="open_file.png",
             title="Select file",
@@ -284,32 +299,37 @@ class Harvester(QMainWindow):
 
         # Create widgets to add:
         self._widget_device_list = ComboBoxDeviceList(self)
-        self._widget_device_list.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self._widget_device_list.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         shortcut_key = "Ctrl+Shift+d"
         shortcut = QShortcut(QKeySequence(shortcut_key), self)
 
-        def show_popup():
+        def show_popup_device_list():
+            assert self._widget_device_list is not None
             self._widget_device_list.showPopup()
 
-        shortcut.activated.connect(show_popup)
+        shortcut.activated.connect(show_popup_device_list)
         self._widget_device_list.setToolTip(
             compose_tooltip("Select a device to connect", shortcut_key)
         )
         observers.append(self._widget_device_list)
         for d in self.harvester_core.device_info_list:
-            self._widget_device_list.addItem(d)
+            self._widget_device_list.addItem(str(d))
         group_connection.addWidget(self._widget_device_list)
         observers.append(self._widget_device_list)
 
         self._widget_display_rates = ComboBoxDisplayRateList(self)
-        self._widget_display_rates.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self._widget_display_rates.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
         shortcut_key = "Ctrl+Shift+r"
         shortcut = QShortcut(QKeySequence(shortcut_key), self)
 
-        def show_popup():
+        def show_popup_display_rates():
             self._widget_display_rates.showPopup()
 
-        shortcut.activated.connect(show_popup)
+        shortcut.activated.connect(show_popup_display_rates)
         self._widget_display_rates.setToolTip(
             compose_tooltip("Select a display rate", shortcut_key)
         )
@@ -415,6 +435,7 @@ class Harvester(QMainWindow):
             }
         )
         try:
+            assert self.device_list is not None
             self._ia = self.harvester_core.create(
                 self.device_list.currentIndex(), config=config
             )
@@ -431,11 +452,9 @@ class Harvester(QMainWindow):
         ) as e:
             self._logger.error(e, exc_info=True)
 
-        if not self._ia:
+        if not self.ia:
             # The device is not available.
             return
-
-        self.ia.signal_stop_image_acquisition = self._signal_stop_image_acquisition
 
         try:
             if self.ia.remote_device.node_map:
@@ -471,9 +490,9 @@ class Harvester(QMainWindow):
         dialog = QFileDialog(self)
         dialog.setWindowTitle("Select a CTI file to load")
         dialog.setNameFilter("CTI files (*.cti)")
-        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
 
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             file_path = dialog.selectedFiles()[0]
 
             self.harvester_core.reset()
@@ -508,6 +527,9 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_start_image_acquisition(self):
+        if self.ia is None:
+            return
+
         if self.ia.is_acquiring():
             # If it's pausing drawing images, just resume it and
             # immediately return this method.
@@ -529,6 +551,8 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_stop_image_acquisition(self):
+        if self.ia is None:
+            return
         # Stop statistics measurement:
         self._thread_statistics_measurement.stop()
 
@@ -552,6 +576,7 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_show_attribute_controller(self):
+        assert self.attribute_controller is not None
         if self.ia and self.attribute_controller.isHidden():
             self.attribute_controller.show()
             self.attribute_controller.expand_all()
@@ -575,6 +600,7 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_show_about(self):
+        assert self.about is not None
         self.about.setModal(False)
         self.about.show()
 
@@ -669,11 +695,32 @@ class ActionShowAbout(Action):
         self._is_model = False
 
 
+def parse_cti_files():
+    parser = argparse.ArgumentParser(description="Graphical user interfce of Harvester")
+    parser.add_argument(
+        "-f",
+        "--file",
+        action="append",
+        help="Specify a CTI file",
+        required=False,
+        default=[],
+    )
+    parser.add_argument(
+        "-v", "--version", action="version", version=version("harvesters_gui")
+    )
+
+    args = parser.parse_args()
+
+    cti_files = args.file
+    return cti_files
+
+
 def main_gui():
+    cti_files = parse_cti_files()
     app = QApplication(sys.argv)
-    harvester = Harvester(vsync=True)
+    harvester = Harvester(vsync=True, files=cti_files)
     harvester.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
