@@ -1,7 +1,7 @@
 import datetime
 import os
 import sys
-from qtpy.QtCore import QMutexLocker, QMutex, Signal, QThread
+from qtpy.QtCore import QMutex, Signal
 from qtpy.QtGui import QKeySequence, QGuiApplication
 from qtpy.QtWidgets import (
     QMainWindow,

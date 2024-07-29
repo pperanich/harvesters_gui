@@ -19,7 +19,7 @@ class ComboBoxDeviceList(QComboBox, Observer):
 
                 try:
                     _ = d.serial_number
-                except:  # We know it's too broad:
+                except Exception:  # We know it's too broad:
                     pass
                 else:
                     if d.serial_number != "":
@@ -28,7 +28,7 @@ class ComboBoxDeviceList(QComboBox, Observer):
 
                 try:
                     _ = d.user_defined_name
-                except:  # We know it's too broad:
+                except Exception:  # We know it's too broad:
                     pass
                 else:
                     if d.user_defined_name != "":

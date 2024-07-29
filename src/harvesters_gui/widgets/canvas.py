@@ -13,7 +13,6 @@ from harvesters.util.pfnc import is_custom, get_bits_per_pixel, bgr_formats
 from harvesters.util.pfnc import (
     mono_location_formats,
     rgb_formats,
-    bgr_formats,
     rgba_formats,
     bgra_formats,
     bayer_location_formats,

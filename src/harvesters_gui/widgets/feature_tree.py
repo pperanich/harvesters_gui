@@ -295,7 +295,7 @@ class FeatureTreeModel(QAbstractItemModel):
                 else:
                     feature.value = value
                 return True
-            except:
+            except Exception:
                 # TODO: Specify appropriate exceptions
                 return False
 
