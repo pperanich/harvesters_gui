@@ -16,7 +16,7 @@ def get_system_font():
         font, size = "Calibri", 12
     else:
         if is_running_on_macos():
-            font, size = "Lucida Sans Unicode", 14
+            font, size = "Lucida Grande", 14
         else:
             font, size = "Sans-serif", 11
     return QFont(font, size)

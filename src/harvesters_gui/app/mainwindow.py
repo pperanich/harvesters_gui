@@ -717,7 +717,7 @@ def parse_cti_files():
 
 def main_gui():
     cti_files = parse_cti_files()
-    app = QApplication(sys.argv)
+    app = QApplication([])
     harvester = Harvester(vsync=True, files=cti_files)
     harvester.show()
     sys.exit(app.exec())
